@@ -11,14 +11,14 @@ st.write("Виконавець: Анастасія Ігнатенко")
 
 # 2. Функція завантаження та обробки
 try:
-    # Читаємо файл, пропускаючи перші 11 рядків (де в тебе мета-дані таблиці)
+    # Читаємо файл, пропускаючи перші 11 рядків
     df = pd.read_csv('test_analitika.csv', skiprows=11)
     
     # Прибираємо порожні рядки та чистимо назви колонок
     df = df.dropna(subset=[df.columns[0]])
     df.columns = [c.strip() for c in df.columns]
     
-    # Вибираємо тільки потрібні 4 колонки
+    # Вибираємо тільки потрібні 4 колонки (CRM, Lost, Won, Win Rate)
     df = df.iloc[:, [0, 1, 2, 3]]
     df.columns = ['CRM', 'Lost', 'Won', 'Win_Rate']
     
@@ -35,18 +35,19 @@ try:
 
     # 4. Графік
     st.markdown("---")
+    st.write("### Аналіз конверсії за типами CRM")
+    
     fig = px.bar(df, x='Win_Rate_Num', y='CRM', 
                  orientation='h', 
-                 title="Конверсія у виграш за типами CRM",
                  color='Win_Rate_Num', 
-                 color_continuous_scale='Portland')
+                 color_continuous_scale='Portland',
+                 labels={'Win_Rate_Num': 'Win Rate (%)'})
     
     st.plotly_chart(fig, use_container_width=True)
     
     # 5. Таблиця для перевірки
-    st.write("### Детальні дані з таблиці")
-    st.dataframe(df)
+    with st.expander("Показати повну таблицю даних"):
+        st.dataframe(df)
 
 except Exception as e:
     st.error(f"Помилка в обробці даних: {e}")
-    st.info("Перевірте, чи файл 'test_analitika.csv' завантажений у GitHub.")
