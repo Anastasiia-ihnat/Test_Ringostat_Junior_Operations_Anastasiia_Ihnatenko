@@ -11,8 +11,10 @@ st.subheader("Посада: Junior Operations Specialist")
 st.write("Виконавець: Анастасія Ігнатенко")
 
 try:
-    # Зчитуємо дані
-    df = pd.read_csv('test_analitika.csv', skiprows=12)
+    # Зчитуємо дані без пропуску рядків спочатку, а потім знайдемо потрібний заголовок
+    raw_df = pd.read_csv('test_analitika.csv')
+    # Шукаємо рядок, де починаються дані (де в першій колонці є слово 'ZohoCRM' або 'CRM')
+    df = pd.read_csv('test_analitika.csv', skiprows=11)
     
     # Очищення назв стовпців
     df.columns = [c.strip() for c in df.columns]
