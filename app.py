@@ -12,25 +12,29 @@ try:
     # 1. Читаємо файл повністю
     full_df = pd.read_csv('test_analitika.csv', header=None)
     
-    # 2. Шукаємо, в якому рядку знаходиться слово 'ZohoCRM'
-    # Це допоможе нам точно знайти початок таблиці, незалежно від кількості рядків зверху
-    start_row = full_df[full_df.astype(str).apply(lambda x: x.str.contains('ZohoCRM')).any(axis=1)].index[0]
+    # 2. Знаходимо рядок, де починаються дані (шукаємо "ZohoCRM")
+    start_row = 0
+    for i, row in full_df.iterrows():
+        if 'ZohoCRM' in str(row.values):
+            start_row = i
+            break
     
-    # 3. Перечитуємо файл вже з правильного місця
+    # 3. Перечитуємо з правильного рядка
     df = pd.read_csv('test_analitika.csv', skiprows=start_row)
     
-    # 4. Чистимо дані
+    # 4. Чистимо колонки
     df.columns = [c.strip() for c in df.columns]
     df = df.iloc[:, [0, 1, 2, 3]] 
     df.columns = ['CRM', 'Lost', 'Won', 'Win_Rate']
     
-    # Видаляємо порожні рядки або рядки, де замість CRM якийсь інший текст
-    df = df[df['CRM'].str.contains('CRM', na=False)]
+    # Прибираємо сміття (рядки, де CRM - це NaN або не містить назву системи)
+    df = df.dropna(subset=['CRM'])
+    df = df[df['CRM'].str.contains('CRM|Pipedrive|Bitrix|amoCRM|Salesforce', case=False, na=False)]
     
-    # 5. Конвертуємо Win Rate у числа (обробляємо і коми, і крапки)
+    # 5. Конвертуємо Win Rate у числа
     df['Win_Rate_Num'] = df['Win_Rate'].astype(str).str.replace('%', '').str.replace(',', '.').astype(float)
     
-    # Метрики
+    # 6. Метрики
     best_crm = df.sort_values(by='Win_Rate_Num', ascending=False).iloc[0]
     
     col1, col2, col3 = st.columns(3)
@@ -41,15 +45,16 @@ try:
     st.markdown("---")
     st.write("### Аналіз ефективності CRM систем")
     
+    # 7. Графік
     fig = px.bar(df, x='Win_Rate_Num', y='CRM', 
                  orientation='h', color='Win_Rate_Num', 
                  color_continuous_scale='Portland',
                  labels={'Win_Rate_Num': 'Win Rate (%)'})
+    
     st.plotly_chart(fig, use_container_width=True)
     
-    with st.expander("Показати повну таблицю даних"):
+    with st.expander("Переглянути вихідні дані"):
         st.dataframe(df)
 
 except Exception as e:
-    st.error(f"Помилка в обробці даних: {e}")
-    st.info("Спробуйте ще раз оновити файл на GitHub.")
+    st.error(f"Помилка: {e}")
