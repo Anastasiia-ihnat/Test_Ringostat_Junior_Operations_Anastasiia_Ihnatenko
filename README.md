@@ -1,0 +1,1 @@
+# Test_Ringostat_Junior_Operations_Anastasiia_Ihnatenko
